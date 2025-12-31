@@ -14,37 +14,40 @@ source "$LIB_DIR/output.sh"
 
 # Load config 
 if [ -f "$CONF_FILE" ]; then
-  source "$CONF_FILE"
+	source "$CONF_FILE"
 else
-  record_err "Missing config/scanner.conf"
-  exit 2
+	record_err "Missing config/scanner.conf"
+	exit 2
 fi
 
 # Load modules 
 source "$CHECKS_DIR/permissions.sh"
+source "$CHECKS_DIR/ssh.sh"
+
+
 
 run_check() {
-  local name="$1"
-  local fn="$2"
+	local name="$1"
+	local fn="$2"
 
-  printf '\n== %s ==\n' "$name"
+	printf '\n== %s ==\n' "$name"
 
-  if ! command -v "$fn" >/dev/null 2>&1; then
-    record_err "Missing function: $fn"
-    return 2
-  fi
+	if ! command -v "$fn" >/dev/null 2>&1; then
+		record_err "Missing function: $fn"
+		return 2
+	fi
 
-  "$fn"
-  local rc=$?
+	"$fn"
+	local rc=$?
 
-  case "$rc" in
-    0) record_pass "$name" ;;
-    1) record_fail "$name" ;;
-    2) record_warn "$name" ;;
-    *) record_err  "$name returned invalid code ($rc)"; return 2 ;;
-  esac
+	case "$rc" in
+		0) record_pass "$name" ;;
+		1) record_fail "$name" ;;
+		2) record_warn "$name" ;;
+		*) record_err  "$name returned invalid code ($rc)"; return 2 ;;
+	esac
 
-  return 0
+	return 0
 }
 
 printf '======================================\n'
@@ -53,7 +56,11 @@ printf ' Started: %s\n' "$(date '+%F %T')"
 printf ' Scan root: %s\n' "${SCAN_ROOT:-/}"
 printf '======================================\n'
 
+
+
 run_check "Filesystem Permissions" audit_permissions
+run_check "SSH Configuration" audit_ssh
+
 
 printf '\n======================================\n'
 printf ' Summary\n'
