@@ -111,10 +111,20 @@ probe_max_auth_tries(){
 audit_ssh(){
 
 	local rc=0
+	ret=$?
 
-	probe_permit_root_login && [ "$rc" -eq 0 ] && rc=2
-	probe_max_auth_tries && [ "$rc" -eq 0 ]
-	probe_password_authentication || rc=1
+	probe_permit_root_login
+	ret=$?
+	[ "$ret" -eq 1 ] && return 1
+	[ "$ret" -eq 2 ] && rc=2
+	probe_max_auth_tries
+	ret=$?
+	[ "$ret" -eq 1 ] && return 1
+        [ "$ret" -eq 2 ] && rc=2
+	probe_password_authentication
+	ret=$?
+	[ "$ret" -eq 1 ] && return 1
+        [ "$ret" -eq 2 ] && rc=2
 	
 	return "$rc"
 }
