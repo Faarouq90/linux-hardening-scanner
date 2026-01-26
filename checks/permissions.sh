@@ -160,6 +160,37 @@ check_passwd_perms(){
 }
 
 
+fix_passwd_perms(){
+
+        local file=/etc/passwd
+        local backup="${file}_$(date '+%F_%H%M%S')"
+
+        if [ "$FIX_MODE" -ne 1 ]; then
+                return 1
+        fi
+
+        if [ ! -e "$file" ]; then
+                printf '\t- %s FIX: FAIL (missing)\n' "$file"
+                return 1
+        fi
+
+        if ! cp -p "$file" "$backup" 2>/dev/null; then
+                printf '\t- %s FIX: FAIL (backup failed)\n' "$file"
+                return 1
+        fi
+
+        if chmod 644 "$file" 2>/dev/null; then
+                printf '\t- %s FIX: OK (set 644, backup %s)\n' "$file" "$backup"
+                return 0
+        else
+                printf '\t- %s FIX: FAIL (chmod failed, backup %s)\n' "$file" "$backup"
+                return 1
+        fi
+
+
+}
+
+
 check_group_perms(){
 
         file=/etc/group
@@ -188,6 +219,38 @@ check_group_perms(){
                 return 1
         fi
 }
+
+fix_group_perms(){
+
+        local file=/etc/group
+        local backup="${file}_$(date '+%F_%H%M%S')"
+
+        if [ "$FIX_MODE" -ne 1 ]; then
+                return 1
+        fi
+
+        if [ ! -e "$file" ]; then
+                printf '\t- %s FIX: FAIL (missing)\n' "$file"
+                return 1
+        fi
+
+        if ! cp -p "$file" "$backup" 2>/dev/null; then
+                printf '\t- %s FIX: FAIL (backup failed)\n' "$file"
+                return 1
+        fi
+
+        if chmod 644 "$file" 2>/dev/null; then
+                printf '\t- %s FIX: OK (set 644, backup %s)\n' "$file" "$backup"
+                return 0
+        else
+                printf '\t- %s FIX: FAIL (chmod failed, backup %s)\n' "$file" "$backup"
+                return 1
+        fi
+
+
+}
+
+
 check_sudoers_perms(){
 
         file=/etc/sudoers
@@ -215,6 +278,36 @@ check_sudoers_perms(){
                 printf '\n\t- File Permission FAIL (%s)\n' "$actual_perm"
                 return 1
         fi
+}
+
+fix_sudoers_perms(){
+
+        local file=/etc/sudoers
+        local backup="${file}_$(date '+%F_%H%M%S')"
+
+        if [ "$FIX_MODE" -ne 1 ]; then
+                return 1
+        fi
+
+        if [ ! -e "$file" ]; then
+                printf '\t- %s FIX: FAIL (missing)\n' "$file"
+                return 1
+        fi
+
+        if ! cp -p "$file" "$backup" 2>/dev/null; then
+                printf '\t- %s FIX: FAIL (backup failed)\n' "$file"
+                return 1
+        fi
+
+        if chmod 440 "$file" 2>/dev/null; then
+                printf '\t- %s FIX: OK (set 440, backup %s)\n' "$file" "$backup"
+                return 0
+        else
+                printf '\t- %s FIX: FAIL (chmod failed, backup %s)\n' "$file" "$backup"
+                return 1
+        fi
+
+
 }
 
 
@@ -255,10 +348,56 @@ audit_permissions(){
 			rc=1
 		fi
 	fi
+	
+	check_passwd_perms
+	ret=$?
 
-	check_passwd_perms || rc=1
-	check_group_perms || rc=1
-	check_sudoers_perms || rc=1
+        #Fix mode for etc/passwd
+        if [ "$ret" -ne 0 ]; then
+                if [ "$FIX_MODE" -eq 1 ]; then
+                        fix_passwd_perms
+                        check_passwd_perms
+                        ret=$?
+                fi
+
+                if [ "$ret" -ne 0 ]; then
+                        rc=1
+                fi
+        fi
+
+
+	check_group_perms
+	ret=$?
+
+        #Fix mode for etc/group
+        if [ "$ret" -ne 0 ]; then
+                if [ "$FIX_MODE" -eq 1 ]; then
+                        fix_group_perms
+                        check_group_perms
+                        ret=$?
+                fi
+
+                if [ "$ret" -ne 0 ]; then
+                        rc=1
+                fi
+        fi
+
+
+	check_sudoers_perms
+	ret=$?
+
+        #Fix mode for etc/sudoers
+        if [ "$ret" -ne 0 ]; then
+                if [ "$FIX_MODE" -eq 1 ]; then
+                        fix_sudoers_perms
+                        check_sudoers_perms
+                        ret=$?
+                fi
+
+                if [ "$ret" -ne 0 ]; then
+                        rc=1
+                fi
+        fi
 	return "$rc"
 
 }
