@@ -1,5 +1,29 @@
 #!/bin/bash
 
+FIX_MODE=0
+
+FIX_MODE=0
+
+for arg in "$@"; do
+	case "$arg" in
+		--fix)
+			FIX_MODE=1
+			;;
+		--help|-h)
+			printf 'Usage: %s [--fix] [--help]\n' "$0"
+			exit 0
+			;;
+		*)
+			printf 'Unknown option: %s\n' "$arg"
+			printf 'Usage: %s [--fix] [--help]\n' "$0"
+			exit 1
+			;;
+	esac
+done
+
+export FIX_MODE
+
+
 set -u
 
 BASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

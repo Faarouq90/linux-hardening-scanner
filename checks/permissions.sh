@@ -7,10 +7,10 @@ check_world_writable_files(){
 
 	if [ -z "$result" ]; then 
 		printf '\t- None Detected\n'
-		return 1
+		return 0
 	else
 		printf '%s\n' "$result" | sed 's/^/\t- /'
-		return 0
+		return 2
 	fi
 	
 }
@@ -25,10 +25,10 @@ check_world_writable_dirs(){
 
 	if [ -z "$result" ]; then
 		printf '\t- None Detected\n'
-		return 1
+		return 0
 	else
 		printf '%s\n' "$result" | sed 's/^/\t- /'
-		return 0
+		return 2
 	fi
 }
 
@@ -39,40 +39,40 @@ check_suid_sgid(){
 	found=0
 
     # SUID
-    while read -r file; do
-        [ -z "$file" ] && continue
-        printf '\t- %s (SUID)\n' "$file"
-        found=1
-    done < <(
-        find /home \
-            \( -path "/proc/*" -o -path "/sys/*" -o -path "/dev/*" \) -prune -o \
-            -type f -perm -4000 -print 2>/dev/null
-    )
+	while read -r file; do
+		[ -z "$file" ] && continue
+		printf '\t- %s (SUID)\n' "$file"
+		found=1
+	done < <(
+		find /home \
+			\( -path "/proc/*" -o -path "/sys/*" -o -path "/dev/*" \)-prune -o \
+			-type f -perm -4000 -print 2>/dev/null
+	)
 
     # SGID
-    while read -r file; do
-        [ -z "$file" ] && continue
-        printf '\t- %s (SGID)\n' "$file"
-        found=1
-    done < <(
-        find /home \
-            \( -path "/proc/*" -o -path "/sys/*" -o -path "/dev/*" \) -prune -o \
-            -type f -perm -2000 -print 2>/dev/null
-    )
+	while read -r file; do
+		[ -z "$file" ] && continue
+		printf '\t- %s (SGID)\n' "$file"
+		found=1
+	done < <(
+		find /home \
+			\( -path "/proc/*" -o -path "/sys/*" -o -path "/dev/*" \) -prune -o \
+			-type f -perm -2000 -print 2>/dev/null
+	)
 
-    if [ "$found" -eq 0 ]; then
-        printf '\tNone detected.\n'
-	return 1
-    fi
-
-   return 0
+	if [ "$found" -eq 0 ]; then
+		printf '\t-None detected.\n'
+		return 0
+	else
+		return 2
+	fi
 
 
 }
 
 check_shadow_perms(){
 
-	file=/etc/shadow
+	local file=/etc/shadow
 
 	actual_perm=$(stat -c %a "$file" 2> /dev/null)
 	required_perm=600
@@ -98,6 +98,36 @@ check_shadow_perms(){
 		printf '\n\t- File Permission FAIL (%s)\n' "$actual_perm"
 		return 1
 	fi
+}
+
+fix_shadow_perms(){
+
+	local file=/etc/shadow
+	local backup="${file}_$(date '+%F_%H%M%S')"
+
+	if [ "$FIX_MODE" -ne 1 ]; then
+		return 1
+	fi
+
+	if [ ! -e "$file" ]; then
+		printf '\t- %s FIX: FAIL (missing)\n' "$file"
+		return 1
+	fi
+
+	if ! cp -p "$file" "$backup" 2>/dev/null; then
+                printf '\t- %s FIX: FAIL (backup failed)\n' "$file"
+                return 1
+        fi
+
+        if chmod 600 "$file" 2>/dev/null; then
+                printf '\t- %s FIX: OK (set 600, backup %s)\n' "$file" "$backup"
+                return 0
+	else
+		printf '\t- %s FIX: FAIL (chmod failed, backup %s)\n' "$file" "$backup"
+                return 1
+        fi
+
+	
 }
 
 check_passwd_perms(){
@@ -193,12 +223,39 @@ check_sudoers_perms(){
 audit_permissions(){
 
 	local rc=0
+	local ret
 
-	check_world_writable_dirs && [ "$rc" -eq 0 ] && rc=2
-	check_world_writable_files && [ "$rc" -eq 0 ] && rc=2
-	check_suid_sgid && [ "$rc" -eq 0 ] && rc=2
-	
-	check_shadow_perms || rc=1
+	check_world_writable_dirs
+	ret=$?
+	[ "$ret" -eq 1 ] && rc=1
+	[ "$ret" -eq 2 ] && [ "$rc" -eq 0 ] && rc=2
+
+	check_world_writable_files
+	ret=$?
+	[ "$ret" -eq 1 ] && rc=1
+	[ "$ret" -eq 2 ] && [ "$rc" -eq 0 ] && rc=2
+
+	check_suid_sgid
+	ret=$?
+	[ "$ret" -eq 1 ] && rc=1
+	[ "$ret" -eq 2 ] && [ "$rc" -eq 0 ] && rc=2
+
+	check_shadow_perms 
+	ret=$?
+
+	#Fix mode for etc/shadow
+	if [ "$ret" -ne 0 ]; then
+		if [ "$FIX_MODE" -eq 1 ]; then
+			fix_shadow_perms
+			check_shadow_perms
+			ret=$?
+		fi
+
+		if [ "$ret" -ne 0 ]; then
+			rc=1
+		fi
+	fi
+
 	check_passwd_perms || rc=1
 	check_group_perms || rc=1
 	check_sudoers_perms || rc=1
