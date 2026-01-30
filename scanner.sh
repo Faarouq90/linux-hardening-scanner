@@ -1,6 +1,5 @@
 #!/bin/bash
 
-FIX_MODE=0
 
 FIX_MODE=0
 
@@ -30,6 +29,10 @@ BASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LIB_DIR="$BASE_DIR/libs"
 CHECKS_DIR="$BASE_DIR/checks"
 CONF_FILE="$BASE_DIR/config/scanner.conf"
+REPORT_DIR="$BASE_DIR/reports"
+REPORT_FILE="$REPORT_DIR/report_$(date '+%F_%H%M%S').txt"
+mkdir -p "$REPORT_DIR"
+
 
 PASS=0; WARN=0; FAIL=0; SKIP=0; ERR=0
 
@@ -74,6 +77,7 @@ run_check() {
 	return 0
 }
 
+{
 printf '======================================\n'
 printf ' Linux Hardening & Compliance Scan\n'
 printf ' Started: %s\n' "$(date '+%F %T')"
@@ -103,4 +107,4 @@ fi
 
 printf '\nOverall status: PASS\n'
 exit 0
-
+} 2>&1 | tee "$REPORT_FILE"
