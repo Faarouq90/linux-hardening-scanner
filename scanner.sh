@@ -51,6 +51,7 @@ fi
 source "$CHECKS_DIR/permissions.sh"
 source "$CHECKS_DIR/ssh.sh"
 source "$CHECKS_DIR/users.sh"
+source "$CHECKS_DIR/services.sh"
 
 
 
@@ -90,6 +91,7 @@ printf '======================================\n'
 run_check "Filesystem Permissions" audit_permissions
 run_check "SSH Configuration" audit_ssh
 run_check "User Accounts" audit_users
+run_check "Running Services" audit_services
 
 
 printf '\n======================================\n'
