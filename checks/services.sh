@@ -54,6 +54,7 @@ check_insecure_services() {
 
 	printf '\nInsecure Services (telnet/ftp/rsh):\n'
 	local found=0
+	local detected=""
 
 	# ---- check by listening port ----
 	for def in $INSECURE_DEFS; do
@@ -68,6 +69,7 @@ check_insecure_services() {
 			else
 				printf '\t- %s: ACTIVE on port %s\n' "$label" "$port"
 			fi
+			detected="${detected:+$detected,}$label:$port"
 			found=1
 		fi
 	done
@@ -77,6 +79,7 @@ check_insecure_services() {
 		for svc in $INSECURE_SYSTEMD_SVCS; do
 			if systemctl is-active --quiet "$svc" 2>/dev/null; then
 				printf '\t- %s: ACTIVE (systemctl)\n' "$svc"
+				detected="${detected:+$detected,}$svc"
 				found=1
 			fi
 		done
@@ -84,8 +87,10 @@ check_insecure_services() {
 
 	if [ "$found" -eq 0 ]; then
 		printf '\t- None detected\n'
+		json_finding "$CURRENT_MODULE" "InsecureServices" "OK" "none"
 		return 0
 	fi
+	json_finding "$CURRENT_MODULE" "InsecureServices" "FAIL" "$detected"
 	return 1
 }
 
@@ -96,10 +101,12 @@ check_unexpected_ports() {
 
 	if ! _ss_available && ! _netstat_available; then
 		printf '\t- SKIP: ss/netstat not available (install iproute2 or net-tools)\n'
+		json_finding "$CURRENT_MODULE" "UnexpectedPorts" "ERR" "tools_unavailable"
 		return 2
 	fi
 
 	local found=0
+	local unexpected=""
 	while read -r port; do
 		[ -z "$port" ] && continue
 
@@ -119,14 +126,17 @@ check_unexpected_ports() {
 			else
 				printf '\t- Port %s: unexpected\n' "$port"
 			fi
+			unexpected="${unexpected:+$unexpected,}$port"
 			found=1
 		fi
 	done < <(_get_listening_ports)
 
 	if [ "$found" -eq 0 ]; then
 		printf '\t- All listening ports are within allowed list\n'
+		json_finding "$CURRENT_MODULE" "UnexpectedPorts" "OK" "none"
 		return 0
 	fi
+	json_finding "$CURRENT_MODULE" "UnexpectedPorts" "WARN" "$unexpected"
 	return 2
 }
 

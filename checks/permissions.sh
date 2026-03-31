@@ -5,14 +5,18 @@ check_world_writable_files(){
 	printf '\nWorld Writable Files:\n'
 	result=$(find $HOME -type f -perm -0002 -print 2> /dev/null)
 
-	if [ -z "$result" ]; then 
+	if [ -z "$result" ]; then
 		printf '\t- None Detected\n'
+		json_finding "$CURRENT_MODULE" "WorldWritableFiles" "OK" "none"
 		return 0
 	else
 		printf '%s\n' "$result" | sed 's/^/\t- /'
+		local value
+		value=$(printf '%s' "$result" | tr '\n' ',' | sed 's/,$//')
+		json_finding "$CURRENT_MODULE" "WorldWritableFiles" "WARN" "$value"
 		return 2
 	fi
-	
+
 }
 
 
@@ -25,9 +29,13 @@ check_world_writable_dirs(){
 
 	if [ -z "$result" ]; then
 		printf '\t- None Detected\n'
+		json_finding "$CURRENT_MODULE" "WorldWritableDirectories" "OK" "none"
 		return 0
 	else
 		printf '%s\n' "$result" | sed 's/^/\t- /'
+		local value
+		value=$(printf '%s' "$result" | tr '\n' ',' | sed 's/,$//')
+		json_finding "$CURRENT_MODULE" "WorldWritableDirectories" "WARN" "$value"
 		return 2
 	fi
 }
@@ -37,11 +45,13 @@ check_suid_sgid(){
 
 	printf '\nSUID/SGID binaries:\n'
 	found=0
+	local binaries=""
 
     # SUID
 	while read -r file; do
 		[ -z "$file" ] && continue
 		printf '\t- %s (SUID)\n' "$file"
+		binaries="${binaries:+$binaries,}$file(SUID)"
 		found=1
 	done < <(
 		find /home \
@@ -53,6 +63,7 @@ check_suid_sgid(){
 	while read -r file; do
 		[ -z "$file" ] && continue
 		printf '\t- %s (SGID)\n' "$file"
+		binaries="${binaries:+$binaries,}$file(SGID)"
 		found=1
 	done < <(
 		find /home \
@@ -62,8 +73,10 @@ check_suid_sgid(){
 
 	if [ "$found" -eq 0 ]; then
 		printf '\t-None detected.\n'
+		json_finding "$CURRENT_MODULE" "SUID_SGID_Binaries" "OK" "none"
 		return 0
 	else
+		json_finding "$CURRENT_MODULE" "SUID_SGID_Binaries" "WARN" "$binaries"
 		return 2
 	fi
 
@@ -82,20 +95,24 @@ check_shadow_perms(){
 
 	if [ ! -e "$file" ]; then
                 printf '\n %s FAIL (missing)\n' "$file"
+                json_finding "$CURRENT_MODULE" "ShadowPerms" "FAIL" "file_missing"
                 return 1
         fi
 
 	if [ ! -f "$file" ]; then
 		printf '\n %s is not a regular file\n' "$file"
+		json_finding "$CURRENT_MODULE" "ShadowPerms" "FAIL" "not_regular_file"
 		return 1
 	fi
 
-	
+
 	if [ "$actual_perm" = "$required_perm" ] || [ "$actual_perm" = "$acceptable_perm" ]; then
 		printf '\n\t- File Permission OK (%s)\n' "$actual_perm"
+		json_finding "$CURRENT_MODULE" "ShadowPerms" "OK" "$actual_perm"
 		return 0
 	else
 		printf '\n\t- File Permission FAIL (%s)\n' "$actual_perm"
+		json_finding "$CURRENT_MODULE" "ShadowPerms" "FAIL" "$actual_perm"
 		return 1
 	fi
 }
@@ -141,20 +158,24 @@ check_passwd_perms(){
 
 	if [ ! -e "$file" ]; then
 		printf '\n %s FAIL (missing)\n' "$file"
+		json_finding "$CURRENT_MODULE" "PasswdPerms" "FAIL" "file_missing"
 		return 1
 	fi
 
 	if [ ! -f "$file" ]; then
 		printf '\n %s is not a regular file\n' "$file"
+		json_finding "$CURRENT_MODULE" "PasswdPerms" "FAIL" "not_regular_file"
 		return 1
 	fi
 
 
 	if [ "$actual_perm" = "$required_perm" ]; then
 		printf '\n\t- File Permission OK (%s)\n' "$actual_perm"
+		json_finding "$CURRENT_MODULE" "PasswdPerms" "OK" "$actual_perm"
 		return 0
 	else
 		printf '\n\t- File Permission FAIL (%s)\n' "$actual_perm"
+		json_finding "$CURRENT_MODULE" "PasswdPerms" "FAIL" "$actual_perm"
 		return 1
 	fi
 }
@@ -202,20 +223,24 @@ check_group_perms(){
 
         if [ ! -e "$file" ]; then
                 printf '\n %s FAIL (missing)\n' "$file"
+                json_finding "$CURRENT_MODULE" "GroupPerms" "FAIL" "file_missing"
                 return 1
         fi
 
         if [ ! -f "$file" ]; then
                 printf '\n %s is not a regular file\n' "$file"
+                json_finding "$CURRENT_MODULE" "GroupPerms" "FAIL" "not_regular_file"
                 return 1
         fi
 
 
         if [ "$actual_perm" = "$required_perm" ]; then
                 printf '\n\t- File Permission OK (%s)\n' "$actual_perm"
+                json_finding "$CURRENT_MODULE" "GroupPerms" "OK" "$actual_perm"
                 return 0
         else
                 printf '\n\t- File Permission FAIL (%s)\n' "$actual_perm"
+                json_finding "$CURRENT_MODULE" "GroupPerms" "FAIL" "$actual_perm"
                 return 1
         fi
 }
@@ -262,20 +287,24 @@ check_sudoers_perms(){
 
         if [ ! -e "$file" ]; then
                 printf '\n %s FAIL (missing)\n' "$file"
+                json_finding "$CURRENT_MODULE" "SudoersPerms" "FAIL" "file_missing"
                 return 1
         fi
 
         if [ ! -f "$file" ]; then
                 printf '\n %s is not a regular file\n' "$file"
+                json_finding "$CURRENT_MODULE" "SudoersPerms" "FAIL" "not_regular_file"
                 return 1
         fi
 
 
         if [ "$actual_perm" = "$required_perm" ]; then
                 printf '\n\t- File Permission OK (%s)\n' "$actual_perm"
+                json_finding "$CURRENT_MODULE" "SudoersPerms" "OK" "$actual_perm"
                 return 0
         else
                 printf '\n\t- File Permission FAIL (%s)\n' "$actual_perm"
+                json_finding "$CURRENT_MODULE" "SudoersPerms" "FAIL" "$actual_perm"
                 return 1
         fi
 }
