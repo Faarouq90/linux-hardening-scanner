@@ -1,3 +1,4 @@
 reports/*.txt
 reports/*.log
+reports/*.json
 reports/backups/
