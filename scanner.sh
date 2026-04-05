@@ -39,6 +39,7 @@ export JSON_TMP JSON_MODULES_TMP
 CURRENT_MODULE=""
 export CURRENT_MODULE
 mkdir -p "$REPORT_DIR"
+chmod 750 "$REPORT_DIR"
 
 
 PASS=0; WARN=0; FAIL=0; SKIP=0; ERR=0
@@ -60,6 +61,7 @@ source "$CHECKS_DIR/ssh.sh"
 source "$CHECKS_DIR/users.sh"
 source "$CHECKS_DIR/services.sh"
 source "$CHECKS_DIR/network.sh"
+source "$CHECKS_DIR/logs.sh"
 
 
 
@@ -105,6 +107,7 @@ run_check "SSH Configuration" audit_ssh
 run_check "User Accounts" audit_users
 run_check "Running Services" audit_services
 run_check "Network Configuration" audit_network
+run_check "Logging Configuration" audit_logs
 
 
 printf '\n======================================\n'
@@ -127,4 +130,5 @@ exit 0
 } 2>&1 | tee "$REPORT_FILE"
 
 write_json_report "$JSON_FILE" "$SCAN_START" "${SCAN_ROOT:-/}"
+chmod 440 "$REPORT_FILE" "$JSON_FILE"
 printf '\nJSON report: %s\n' "$JSON_FILE"
