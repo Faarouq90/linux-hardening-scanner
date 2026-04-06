@@ -87,17 +87,17 @@ check_logging_daemons() {
 
 	if [ "$found" -eq 0 ]; then
 		printf '\t- No active logging daemons detected\n'
-		json_finding "$CURRENT_MODULE" "LoggingDaemons" "FAIL" "none_active"
+		json_finding "$CURRENT_MODULE" "LoggingDaemons" "FAIL" "none_active" "6.1.3.1"
 		return 1
 	fi
 
 	if [ "$need_syslog" -eq 1 ]; then
-		json_finding "$CURRENT_MODULE" "LoggingDaemons" "WARN" \
+		json_finding "$CURRENT_MODULE" "LoggingDaemons" "WARN" \ "6.1.3.1"
 			"active:${active_svcs:-none};inactive:${inactive_svcs}"
 		return 2
 	fi
 
-	json_finding "$CURRENT_MODULE" "LoggingDaemons" "OK" "active:${active_svcs}"
+	json_finding "$CURRENT_MODULE" "LoggingDaemons" "OK" "active:${active_svcs}" "6.1.3.1"
 	return 0
 }
 
@@ -108,18 +108,18 @@ check_auditd_enabled() {
 
 	if ! command -v systemctl >/dev/null 2>&1; then
 		printf '\t- SKIP: systemctl not available\n'
-		json_finding "$CURRENT_MODULE" "AuditdEnabled" "ERR" "systemctl_unavailable"
+		json_finding "$CURRENT_MODULE" "AuditdEnabled" "ERR" "systemctl_unavailable" "6.2.1.2"
 		return 2
 	fi
 
 	if _svc_enabled auditd; then
 		printf '\t- auditd: enabled\n'
-		json_finding "$CURRENT_MODULE" "AuditdEnabled" "OK" "enabled"
+		json_finding "$CURRENT_MODULE" "AuditdEnabled" "OK" "enabled" "6.2.1.2"
 		return 0
 	fi
 
 	printf '\t- auditd: NOT enabled at boot\n'
-	json_finding "$CURRENT_MODULE" "AuditdEnabled" "WARN" "not_enabled"
+	json_finding "$CURRENT_MODULE" "AuditdEnabled" "WARN" "not_enabled" "6.2.1.2"
 	return 2
 }
 
@@ -159,16 +159,16 @@ check_log_file_permissions() {
 
 	if [ "$any_exist" -eq 0 ]; then
 		printf '\t- No log files found to check\n'
-		json_finding "$CURRENT_MODULE" "LogFilePermissions" "ERR" "no_log_files_found"
+		json_finding "$CURRENT_MODULE" "LogFilePermissions" "ERR" "no_log_files_found" "6.1.3.4"
 		return 2
 	fi
 
 	if [ "$found" -eq 0 ]; then
 		printf '\t- All checked log files have acceptable permissions\n'
-		json_finding "$CURRENT_MODULE" "LogFilePermissions" "OK" "none"
+		json_finding "$CURRENT_MODULE" "LogFilePermissions" "OK" "none" "6.1.3.4"
 		return 0
 	fi
-	json_finding "$CURRENT_MODULE" "LogFilePermissions" "FAIL" "$bad_files"
+	json_finding "$CURRENT_MODULE" "LogFilePermissions" "FAIL" "$bad_files" "6.1.3.4"
 	return 1
 }
 
@@ -208,7 +208,7 @@ check_journal_persistent() {
 
 	if [ ! -f "$conf_file" ]; then
 		printf '\t- SKIP: %s not found\n' "$conf_file"
-		json_finding "$CURRENT_MODULE" "JournaldPersistent" "ERR" "conf_not_found"
+		json_finding "$CURRENT_MODULE" "JournaldPersistent" "ERR" "conf_not_found" "6.1.2.4"
 		return 2
 	fi
 
@@ -221,28 +221,28 @@ check_journal_persistent() {
 	case "${storage:-auto}" in
 		persistent)
 			printf '\t- Storage=persistent (logs survive reboots)\n'
-			json_finding "$CURRENT_MODULE" "JournaldPersistent" "OK" "persistent"
+			json_finding "$CURRENT_MODULE" "JournaldPersistent" "OK" "persistent" "6.1.2.4"
 			return 0
 			;;
 		auto)
 			# "auto" persists if /var/log/journal exists
 			if [ -d /var/log/journal ]; then
 				printf '\t- Storage=auto with /var/log/journal present (persistent)\n'
-				json_finding "$CURRENT_MODULE" "JournaldPersistent" "OK" "auto_persistent"
+				json_finding "$CURRENT_MODULE" "JournaldPersistent" "OK" "auto_persistent" "6.1.2.4"
 				return 0
 			fi
 			printf '\t- Storage=auto but /var/log/journal absent (volatile — logs lost on reboot)\n'
-			json_finding "$CURRENT_MODULE" "JournaldPersistent" "WARN" "auto_volatile"
+			json_finding "$CURRENT_MODULE" "JournaldPersistent" "WARN" "auto_volatile" "6.1.2.4"
 			return 2
 			;;
 		volatile|none)
 			printf '\t- Storage=%s (logs are NOT persisted to disk)\n' "$storage"
-			json_finding "$CURRENT_MODULE" "JournaldPersistent" "WARN" "storage_${storage}"
+			json_finding "$CURRENT_MODULE" "JournaldPersistent" "WARN" "storage_${storage}" "6.1.2.4"
 			return 2
 			;;
 		*)
 			printf '\t- Storage=%s (unknown value)\n' "$storage"
-			json_finding "$CURRENT_MODULE" "JournaldPersistent" "ERR" "unknown_storage:${storage}"
+			json_finding "$CURRENT_MODULE" "JournaldPersistent" "ERR" "unknown_storage:${storage}" "6.1.2.4"
 			return 2
 			;;
 	esac

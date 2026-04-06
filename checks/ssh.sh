@@ -56,7 +56,7 @@ probe_permit_root_login(){
 
 	if [ ! -f "$ssh_config_file" ]; then
 		printf '\t-Missing/Unreadble File (%s)\n' "$ssh_config_file"
-		json_finding "$CURRENT_MODULE" "PermitRootLogin" "ERR" "file_missing"
+		json_finding "$CURRENT_MODULE" "PermitRootLogin" "ERR" "file_missing" "5.1.20"
 		return 2
 	fi
 
@@ -65,24 +65,24 @@ probe_permit_root_login(){
 
 	if [ -z "$value" ]; then
 		printf '\t- PermitRootLogin: WARN (Missing Key)\n'
-		json_finding "$CURRENT_MODULE" "PermitRootLogin" "WARN" "key_missing"
+		json_finding "$CURRENT_MODULE" "PermitRootLogin" "WARN" "key_missing" "5.1.20"
 		return 2
 	fi
 
 	case "$value" in
 		no|prohibit-password)
 			printf '\t- PermitRootLogin: OK (%s)\n' "$value"
-			json_finding "$CURRENT_MODULE" "PermitRootLogin" "OK" "$value"
+			json_finding "$CURRENT_MODULE" "PermitRootLogin" "OK" "$value" "5.1.20"
 			return 0
 			;;
 		yes)
 			printf '\t- PermitRootLogin: FAIL (%s)\n' "$value"
-			json_finding "$CURRENT_MODULE" "PermitRootLogin" "FAIL" "$value"
+			json_finding "$CURRENT_MODULE" "PermitRootLogin" "FAIL" "$value" "5.1.20"
 			return 1
 			;;
 		*)
 			printf '\t- PermitRootLogin: WARN (%s)\n' "$value"
-			json_finding "$CURRENT_MODULE" "PermitRootLogin" "WARN" "$value"
+			json_finding "$CURRENT_MODULE" "PermitRootLogin" "WARN" "$value" "5.1.20"
 			return 2
 			;;
 	esac
@@ -175,27 +175,27 @@ probe_max_auth_tries(){
 
         if [ ! -f "$ssh_config_file" ]; then
                 printf '\t-Missing/Unreadble File (%s)\n' "$ssh_config_file"
-                json_finding "$CURRENT_MODULE" "MaxAuthTries" "ERR" "file_missing"
+                json_finding "$CURRENT_MODULE" "MaxAuthTries" "ERR" "file_missing" "5.1.16"
                 return 2
         fi
 
         if [ -z "$value" ]; then
                printf '\t- MaxAuthTries: WARN (Missing)\n'
-                json_finding "$CURRENT_MODULE" "MaxAuthTries" "WARN" "key_missing"
+                json_finding "$CURRENT_MODULE" "MaxAuthTries" "WARN" "key_missing" "5.1.16"
                 return 2
         fi
 
 	if [ "$value" -le 4 ]; then
 		printf '\t- MaxAuthTries: OK (%s)\n' "$value"
-		json_finding "$CURRENT_MODULE" "MaxAuthTries" "OK" "$value"
+		json_finding "$CURRENT_MODULE" "MaxAuthTries" "OK" "$value" "5.1.16"
 		return 0
 	elif [ "$value" -le 6 ]; then
 		printf '\t- MaxAuthTries: WARN (%s)\n' "$value"
-		json_finding "$CURRENT_MODULE" "MaxAuthTries" "WARN" "$value"
+		json_finding "$CURRENT_MODULE" "MaxAuthTries" "WARN" "$value" "5.1.16"
 		return 2
 	else
 		printf '\t- MaxAuthTries: FAIL (%s)\n' "$value"
-		json_finding "$CURRENT_MODULE" "MaxAuthTries" "FAIL" "$value"
+		json_finding "$CURRENT_MODULE" "MaxAuthTries" "FAIL" "$value" "5.1.16"
 		return 1
 	fi
 

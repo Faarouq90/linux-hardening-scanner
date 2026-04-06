@@ -12,13 +12,13 @@ record_err()  { ERR=$((ERR + 1));  printf '\n[ERR ] %s\n' "$1"; }
 # ---------------------------------------------------------------------------
 
 # Append a finding line to the findings temp file.
-# Usage: json_finding <module> <check> <status> <value>
+# Usage: json_finding <module> <check> <status> <value> [cis_id]
 json_finding() {
     [ -z "${JSON_TMP:-}" ] && return 0
-    local module="$1" check="$2" status="$3" value="$4"
+    local module="$1" check="$2" status="$3" value="$4" cis_id="${5:-}"
     # escape pipe chars so IFS='|' read is safe
     value="${value//|/\\|}"
-    printf '%s|%s|%s|%s\n' "$module" "$check" "$status" "$value" >> "$JSON_TMP"
+    printf '%s|%s|%s|%s|%s\n' "$module" "$check" "$status" "$value" "$cis_id" >> "$JSON_TMP"
 }
 
 # Record the aggregate status for a module (called from run_check).
@@ -68,7 +68,7 @@ write_json_report() {
         local prev_module="" first_module=1 first_finding=1
 
         if [ -s "${JSON_TMP:-}" ]; then
-            while IFS='|' read -r module check fstatus value; do
+            while IFS='|' read -r module check fstatus value cis_id; do
                 [ -z "$module" ] && continue
 
                 if [ "$module" != "$prev_module" ]; then
@@ -90,8 +90,8 @@ write_json_report() {
                 fi
 
                 [ "$first_finding" -eq 0 ] && printf ','
-                printf '\n        {"check":"%s","status":"%s","value":"%s"}' \
-                    "$(_json_str "$check")" "$fstatus" "$(_json_str "$value")"
+                printf '\n        {"check":"%s","status":"%s","value":"%s","cis_id":"%s"}' \
+                    "$(_json_str "$check")" "$fstatus" "$(_json_str "$value")" "$(_json_str "$cis_id")"
                 first_finding=0
             done < "$JSON_TMP"
         fi

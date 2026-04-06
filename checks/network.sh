@@ -51,7 +51,7 @@ check_ip_forwarding() {
 
 	if ! _sysctl_available; then
 		printf '\t- SKIP: sysctl not available\n'
-		json_finding "$CURRENT_MODULE" "IPForwarding" "ERR" "sysctl_unavailable"
+		json_finding "$CURRENT_MODULE" "IPForwarding" "ERR" "sysctl_unavailable" "3.3.1"
 		return 2
 	fi
 
@@ -60,17 +60,17 @@ check_ip_forwarding() {
 
 	if [ -z "$value" ]; then
 		printf '\t- net.ipv4.ip_forward: WARN (could not read)\n'
-		json_finding "$CURRENT_MODULE" "IPForwarding" "WARN" "unreadable"
+		json_finding "$CURRENT_MODULE" "IPForwarding" "WARN" "unreadable" "3.3.1"
 		return 2
 	fi
 
 	if [ "$value" -eq 0 ]; then
 		printf '\t- net.ipv4.ip_forward: OK (%s)\n' "$value"
-		json_finding "$CURRENT_MODULE" "IPForwarding" "OK" "$value"
+		json_finding "$CURRENT_MODULE" "IPForwarding" "OK" "$value" "3.3.1"
 		return 0
 	else
 		printf '\t- net.ipv4.ip_forward: FAIL (%s)\n' "$value"
-		json_finding "$CURRENT_MODULE" "IPForwarding" "FAIL" "$value"
+		json_finding "$CURRENT_MODULE" "IPForwarding" "FAIL" "$value" "3.3.1"
 		return 1
 	fi
 }
@@ -108,7 +108,7 @@ check_icmp_redirects() {
 
 	if ! _sysctl_available; then
 		printf '\t- SKIP: sysctl not available\n'
-		json_finding "$CURRENT_MODULE" "ICMPRedirects" "ERR" "sysctl_unavailable"
+		json_finding "$CURRENT_MODULE" "ICMPRedirects" "ERR" "sysctl_unavailable" "3.3.5"
 		return 2
 	fi
 
@@ -140,11 +140,11 @@ check_icmp_redirects() {
 	done
 
 	if [ "$rc" -eq 0 ]; then
-		json_finding "$CURRENT_MODULE" "ICMPRedirects" "OK" "all_disabled"
+		json_finding "$CURRENT_MODULE" "ICMPRedirects" "OK" "all_disabled" "3.3.5"
 	elif [ "$rc" -eq 1 ]; then
-		json_finding "$CURRENT_MODULE" "ICMPRedirects" "FAIL" "$failed_keys"
+		json_finding "$CURRENT_MODULE" "ICMPRedirects" "FAIL" "$failed_keys" "3.3.5"
 	else
-		json_finding "$CURRENT_MODULE" "ICMPRedirects" "WARN" "some_unreadable"
+		json_finding "$CURRENT_MODULE" "ICMPRedirects" "WARN" "some_unreadable" "3.3.5"
 	fi
 
 	return "$rc"
@@ -293,15 +293,15 @@ check_firewall() {
 		   ! command -v nft >/dev/null 2>&1 && \
 		   ! command -v iptables >/dev/null 2>&1; then
 			printf '\t- WARN: no firewall tools detected\n'
-			json_finding "$CURRENT_MODULE" "Firewall" "WARN" "no_tools_found"
+			json_finding "$CURRENT_MODULE" "Firewall" "WARN" "no_tools_found" "4.1.1"
 			return 2
 		fi
 		printf '\t- FAIL: no active firewall detected\n'
-		json_finding "$CURRENT_MODULE" "Firewall" "FAIL" "inactive"
+		json_finding "$CURRENT_MODULE" "Firewall" "FAIL" "inactive" "4.1.1"
 		return 1
 	fi
 
-	json_finding "$CURRENT_MODULE" "Firewall" "OK" "$detected"
+	json_finding "$CURRENT_MODULE" "Firewall" "OK" "$detected" "4.1.1"
 	return 0
 }
 

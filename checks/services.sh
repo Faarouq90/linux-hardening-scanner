@@ -87,10 +87,10 @@ check_insecure_services() {
 
 	if [ "$found" -eq 0 ]; then
 		printf '\t- None detected\n'
-		json_finding "$CURRENT_MODULE" "InsecureServices" "OK" "none"
+		json_finding "$CURRENT_MODULE" "InsecureServices" "OK" "none" "2.1.6/2.1.22"
 		return 0
 	fi
-	json_finding "$CURRENT_MODULE" "InsecureServices" "FAIL" "$detected"
+	json_finding "$CURRENT_MODULE" "InsecureServices" "FAIL" "$detected" "2.1.6/2.1.22"
 	return 1
 }
 
@@ -101,7 +101,7 @@ check_unexpected_ports() {
 
 	if ! _ss_available && ! _netstat_available; then
 		printf '\t- SKIP: ss/netstat not available (install iproute2 or net-tools)\n'
-		json_finding "$CURRENT_MODULE" "UnexpectedPorts" "ERR" "tools_unavailable"
+		json_finding "$CURRENT_MODULE" "UnexpectedPorts" "ERR" "tools_unavailable" "2.1.22"
 		return 2
 	fi
 
@@ -133,10 +133,10 @@ check_unexpected_ports() {
 
 	if [ "$found" -eq 0 ]; then
 		printf '\t- All listening ports are within allowed list\n'
-		json_finding "$CURRENT_MODULE" "UnexpectedPorts" "OK" "none"
+		json_finding "$CURRENT_MODULE" "UnexpectedPorts" "OK" "none" "2.1.22"
 		return 0
 	fi
-	json_finding "$CURRENT_MODULE" "UnexpectedPorts" "WARN" "$unexpected"
+	json_finding "$CURRENT_MODULE" "UnexpectedPorts" "WARN" "$unexpected" "2.1.22"
 	return 2
 }
 

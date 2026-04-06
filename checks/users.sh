@@ -19,10 +19,10 @@ check_uid0_nonroot() {
 
 	if [ "$found" -eq 0 ]; then
 		printf '\t- None detected\n'
-		json_finding "$CURRENT_MODULE" "UID0NonRoot" "OK" "none"
+		json_finding "$CURRENT_MODULE" "UID0NonRoot" "OK" "none" "5.4.2.1"
 		return 0
 	fi
-	json_finding "$CURRENT_MODULE" "UID0NonRoot" "FAIL" "$users"
+	json_finding "$CURRENT_MODULE" "UID0NonRoot" "FAIL" "$users" "5.4.2.1"
 	return 1
 }
 
@@ -33,7 +33,7 @@ check_empty_passwords() {
 
 	if [ ! -r /etc/shadow ]; then
 		printf '\t- /etc/shadow not readable (run as root)\n'
-		json_finding "$CURRENT_MODULE" "EmptyPasswords" "ERR" "shadow_unreadable"
+		json_finding "$CURRENT_MODULE" "EmptyPasswords" "ERR" "shadow_unreadable" "7.2.2"
 		return 2
 	fi
 
@@ -49,10 +49,10 @@ check_empty_passwords() {
 
 	if [ "$found" -eq 0 ]; then
 		printf '\t- None detected\n'
-		json_finding "$CURRENT_MODULE" "EmptyPasswords" "OK" "none"
+		json_finding "$CURRENT_MODULE" "EmptyPasswords" "OK" "none" "7.2.2"
 		return 0
 	fi
-	json_finding "$CURRENT_MODULE" "EmptyPasswords" "FAIL" "$users"
+	json_finding "$CURRENT_MODULE" "EmptyPasswords" "FAIL" "$users" "7.2.2"
 	return 1
 }
 
@@ -88,7 +88,7 @@ check_locked_accounts() {
 
 	if [ ! -r /etc/shadow ]; then
 		printf '\t- /etc/shadow not readable (run as root)\n'
-		json_finding "$CURRENT_MODULE" "LockedAccounts" "ERR" "shadow_unreadable"
+		json_finding "$CURRENT_MODULE" "LockedAccounts" "ERR" "shadow_unreadable" "7.2.1"
 		return 2
 	fi
 
@@ -111,10 +111,10 @@ check_locked_accounts() {
 
 	if [ "$found" -eq 0 ]; then
 		printf '\t- None detected\n'
-		json_finding "$CURRENT_MODULE" "LockedAccounts" "OK" "none"
+		json_finding "$CURRENT_MODULE" "LockedAccounts" "OK" "none" "7.2.1"
 		return 0
 	fi
-	json_finding "$CURRENT_MODULE" "LockedAccounts" "WARN" "$users"
+	json_finding "$CURRENT_MODULE" "LockedAccounts" "WARN" "$users" "7.2.1"
 	return 2
 }
 
@@ -159,7 +159,7 @@ check_password_age() {
 
 	if [ ! -r /etc/shadow ]; then
 		printf '\t- /etc/shadow not readable (run as root)\n'
-		json_finding "$CURRENT_MODULE" "PasswordAge" "ERR" "shadow_unreadable"
+		json_finding "$CURRENT_MODULE" "PasswordAge" "ERR" "shadow_unreadable" "5.4.1.1"
 		return 2
 	fi
 
@@ -191,10 +191,10 @@ check_password_age() {
 
 	if [ "$found" -eq 0 ]; then
 		printf '\t- None detected\n'
-		json_finding "$CURRENT_MODULE" "PasswordAge" "OK" "none"
+		json_finding "$CURRENT_MODULE" "PasswordAge" "OK" "none" "5.4.1.1"
 		return 0
 	fi
-	json_finding "$CURRENT_MODULE" "PasswordAge" "WARN" "$users"
+	json_finding "$CURRENT_MODULE" "PasswordAge" "WARN" "$users" "5.4.1.1"
 	return 2
 }
 
